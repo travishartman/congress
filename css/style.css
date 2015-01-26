@@ -1,0 +1,40 @@
+/*stylesheet for congressional effectivenesss bubble chart*/
+/*Author: Travis Hartman*/
+/*created 1.19.2015*/
+
+body {
+	font-family: helvetica, arial, sans-serif;
+
+}
+
+.well {
+	margin-top: 5%;
+	margin-left: -5%;
+	height: 75%;
+}
+
+
+/*Infobox styles*/
+
+.title {
+
+}
+
+.congressPerson {
+font-style: bold;
+margin-top: -3%
+}
+
+.bubbleMessageOverall {
+	margin-top: -8%;
+}
+
+#slider {
+	margin-top: 6%;
+}
+
+.bubbleLaw, .bubbleScore, .bubblePassed {
+	margin-top: -3%
+
+
+}

@@ -1,0 +1,148 @@
+// congress notes:
+
+// created readme detailing info in data files
+// inspected data, need to split names on comma, need to nest on data node "congress" in order to group properly.
+
+// set up pages for html structure
+
+// using bootstrap-
+// 	create a div with column structre and then give it a class- 	
+// 	in beginning of .js file, call out the width and heighth of the div (col-12 or however bootstrap works) and set it to the variables mapWidth and mapHeighth for exmaple.  
+
+// 	then i'll need select the div by name and append an svg to it, then give it the attributes.
+
+// 	then group it
+
+
+// loaded and nested the data with this:
+
+d3.csv("data/93to110congress.csv", function (congress) {
+
+
+nestedCongress = d3.nest()
+.key (function(d) {return d.congress;}) //d.congress is the session of congress each represenative is in
+.map(congress)
+console.log(nestedCongress)
+
+
+
+
+});
+
+// this took a while in reading the d3.nest info from bostock.  the data like a boss thing from jerome culkier was quite helpful: (but using map instead of .entries)
+
+// With the .key() method, we are indicating what we will be using to create the hierarchy. We want to group those data by continent, so we use this syntax.
+// .sortKeys is used to sort the keys in alphabetical order, so our panels appear in the alphabetical order of the continents. If we omit that, the panels will show up in the order of the data (ie Oceania first as Australia is the first country). We could have avoided that by sorting the data by continent first before nesting it, but it’s easier like this.
+// Here, we just have one level of grouping, but we could have several by chaining several .key() methods.
+// The last part of the statement, .entries(csv), says that we want to do that operation on our csv variable.
+
+
+// questions: general setup?  
+
+// deleted allt he nested svg and grouping. will apply when needed i guess. 
+// now, set up a svg canvas- attach to the body and apply circeles to that.  
+// 			how to append?  
+
+// 			ok, actualyl found a ncie shortcut with the d3 macros in sublime-  just typed margin  and "margin convention" popped up with svg = all the noise, + margins _ all the stuff.  so i've got a good thing now.  also- earlier i was confounded by a svg that was defaulting to 100 px high, despite my trying  to fix it in many ways.  turns out i spelled height wrong.  ncie work. 
+
+
+// 	further thoughts:
+// 	need to use this convention to get at the goods-
+
+// 	nestedCongress[93][3].les*100
+
+// 	where the [3] is the individual congressman, so need to set that loop to a variable and then introduce that varibel in the iteration.  
+// 	also multiplying it by 100 seems good, as they are all set to be around 1.  soem are negative though i think?  might need to square and then square root? but not ethe negativeity and color differently?  dunno.  that might be just frothe DW-Nominate scores.  yeah that's just for the DW Nominate scores it looks like.   
+
+// 	turns out no need to write a loop-
+// 	the magic of d3 appears! 
+// to wit:
+
+var circles = svg.selectAll("cirlce")
+	.data(nestedCongress[94])
+	.enter()
+	.append("circle");
+
+circles.attr ("cx", function (d,i) {
+	return (i * 20) + 15;
+})
+.attr ("cy", height/2)
+.attr('r', function (d) {
+	return d.les*20;
+} )
+
+// setting the .data function to nestedCongress[94] brings in the 94th session of congress.  then you enter and append this info to the circles i think.  
+
+// then, in setting the attributes to the circles, 
+// since the nestedCongress is already set as the data when you write an anaonymous function and (d) that gives you access to both the data and the iterations of the data  (through i).  since we have functions in the way we're finding the cricles' x and r attributes we can iterate through them.  thus, when we want to make the radius of the circles set to the legislative effectiveness score (les in the objects) since we are already set to the data being nestedCongress[93], 
+
+// modulous operator to format
+// like the batten ding on a typewrtier, will hit a limit and then reset-
+// probably lots more to learn here, but a *great* formatting technique.
+// so to start, i set a varaible for circlesPerRow  set it to 10.
+// then for the x position of the circle, 
+
+
+// question: 
+// why does the cy sink slightly across the line?  how to rectify it so its perfect?  this is the current problem.
+
+// answer!
+
+// the fraction that is left in the division of the i/circlesPerRow is what was increasing the drift.  Math.floor() will rectify this in a perfunctory fashion.  because the fraction will =never get above 1 (1/10 = .1, 2/10 = .2, etc . . ) you can floor it to stablilze the i being divided by the circlesPerRow and the grid will stabilize.  BRILLIANT.   Reed suggested using the step-deubgger to look into the function when the mental model is off from what is actually happening.  
+
+// also: how to set the circles in place and then have them grow. requires a chained transition.  a bit fussy too, really. but would also be cool to know how to do.  or be alinged at the top and have them sink down into place while they grow. 
+// how to make big one sink slower than small ones? transition speeed based on radius (or really whatever variable is passed to the raduis)
+
+// i copied all the cirle info and placed it above the transition. then changed the values of the position and transparency and such.   thus, its the starting state and then they will flow into the new place.  pretty cool.  
+
+// how to best access all the years? slider?  
+// how to best access all the circles?  zoom function?  
+
+// - note difference between years some is very red some are very blue.  why is this??  does it have to do with majority?  can highlight majority party member.
+// also: adjust the placement so that smaller ones are brought to front and larger are set to back, which is to say the order in which they are placed on the page is important.  assess all of the LES numbers first and sort and place on page and then?  or is there a better way to sort them?  perhaps by length in congress?  that might mix it up well and be a pretty neutral way to see through the matrix.  
+
+// provide access to find a specific congressmena in a specific year-
+// compare one to another? like baseball cards?  remain true to the congressional ERA.  
+
+// swing dots from grid to map?  
+// year by year?  (note that the les has the scope within its own year, and direct comparisons from year to year are not necessarily fair.  this is in the literature of the dw-nominate webpage.)
+
+// separate by state?  fl + tx have 29 apiece. wyonmong has like 1.  
+// or dynamic grouping. might be fun.  watch the balls fly around! 
+
+// reed chanllenge:
+// use scale.log for diameter of circles.
+// it will make them look a lot prettier her says. 
+// challenge accpeted!
+
+// problems- need to loop through myData[x].les
+// set a variable to the loop and then find .les for each, whcih i'll then be able to scale.log.  
+// seems like i should be abel to leverage the already loaded data MyData, or set another var to myData[x], then just d.les like i did to source the raduis in the first place.  
+
+// managed to get the log scale working- it was very important to note two things:
+// 1.
+// cannot take log of zero.  so imporatnt to set min domain to .01. 
+// need to look into the meanding of "base" in a log.  this will help understand how to best shape the bubble disparity.  
+// 2.  don't neeed to write a loop here like this:
+for (var radiusData = 0; radiusData < myData.length; radiusData++) {
+	var logData = myData[radiusData]; test = logData.les; 
+}
+
+// simply need to set an anonymous function within the scale.log and find the part you want for the d3.max 
+
+// this sets up the scale :
+
+var radiusScale = d3.scale.log()
+					// .base()
+					// .clamp(true)
+					.domain([.01, d3.max(myData, function(d){return d.les})])
+					.range([0, 20]);
+
+// this accesses it in the radius part of the circle: (note another anonymous function that returns the needed data to the scale above)
+.attr('r', function (d, i) {
+	return radiusScale (d.les)
+}
+	)
+
+
+
