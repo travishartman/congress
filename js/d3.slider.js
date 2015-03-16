@@ -66,6 +66,7 @@ return function module() {
       var drag = d3.behavior.drag();
       drag.on('dragend', function () {
         dispatch.slideend(d3.event, value);
+        // TRAVIS EDIT: 
         // console.log(value)
       })
 
@@ -191,7 +192,8 @@ return function module() {
           }
 
         } else { // Vertical
-
+          // REED EDIT: Reverse vertical scale domain cuz it was borked
+          axisScale.domain(axisScale.domain().reverse())
           svg.style("top", -margin + "px");
 
           svg.attr({
