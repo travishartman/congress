@@ -1,0 +1,68 @@
+data dictionary:
+congress effectiveness
+
+thomas_num 		- unique identifier for each congressperson, iterated in order from THOMAS
+thomas_name		- name from THOMAS 					(should split on comma into first and last names)
+icpsr			- ICPSR number, according to Poole and Rosenthal
+congress		- congress number
+year			- year at start of congress
+st_name			- two letter state abbreviation (mapping?)
+cd				- congressional district number  (mapping?) could see where effective members come from?
+dem				- 1 = democrat (no republican/ other party?)
+majority		- 1 = majority party member
+elected			- year first elected to house (longevity)
+female			- 1 = female
+votepct			- percentage of vote recieved to enter this congress (does this increase or decrese with LES? regression)
+dwnom1			- 
+				first dimension DW-nominate score - the first dimension can be interpreted in most periods as government intervention in the economy or liberal-conservative in the modern era - NOMINATE (an acronym for Nominal Three-Step Estimation) is a multidimensional scaling application developed by political scientists Keith T. Poole and Howard Rosenthal in the early 1980s to analyze preferential and choice data, such as legislative roll-call voting behavior.				
+
+deleg_size		- size of house delegation from members state, i.e. number of represenatavies 						from that state
+speaker			- 1 = speaker
+chair			- 1 = committee chair
+subchr			- 1 = subcommittee chair				
+power			- 1 = Member of Appropriation, Rules, or Ways and Means
+budget			- 1 = Member of Budget
+seniority		- Seniority, number of terms served counting current
+maj_leader		- 1 = Majority party leadership
+min_leader		- 1 = Minority party leadership
+
+A bill is denoted as “Substantive and Significant” if the bill is mentioned in an end-of-the-year write-up in the Congressional Quarterly (CQ) Almanac that corresponds to the relevant Congress.
+
+ss_bills		- Number of substantive and significant bills sponsored
+ss_aic			- Number of substantive and significant bills with action in committee
+ss_abc			- Number of substantive and significant bills with action beyond committee
+ss_pass			- Number of substantive and significant bills passed House
+ss_law			- Number of substantive and significant bills became law
+
+A bill is denoted as “Substantive” if it is neither Commemorative nor Substantive and Significant, according to our coding protocol; or, if it would have been denoted as Commemorative, but it was mentioned in an end-of-the-year write-up in the Congressional Quarterly Almanac that corresponds to the relevant Congress.
+
+s_bills			- Number of substantive bills sponsored
+s_aic			- Number of substantive bills with action in committee
+s_abc			- Number of substantive bills with action beyond committee
+s_pass			- Number of substantive bills passed House
+s_law			- Number of substantive bills became law
+
+A bill is denoted as “Commemorative” if the substance of the legislation satisfies one of several criteria deeming it as commemorative or symbolic in purpose, such as the naming and/or renaming of public buildings, the minting of commemorative coins and medals, and related matters.
+
+c_bills			- Number of commemorative bills sponsored
+c_aic			- Number of commemorative bills with action in committee
+c_abc			- Number of commemorative bills with action beyond committee
+c_pass			- Number of commemorative bills passed House
+c_law			- Number of commemorative bills became law
+
+
+all_bills/ aid/ abc, etc - total number of category for congressman in that session/
+
+les				- Legislative Effectiveness Score (1-5-10)
+
+ —  where the three sets of five terms represent the member’s fraction of bills (1) introduced, (2) receiving action in committee, (3) receiving action beyond committee, (4) passing the House, and (5) becoming law, relative to all N legislators. Within each of these five terms, commemorative bills are weighted by α = 1, substantive bills by β = 5, and substantive and significant by γ = 10. The overall weighting of N/5 normalizes the average LES to take a value of 1 in each Congress.
+
+
+NOTES:
+third party congressmen?
+Virgil Goode, D-I-R
+I for 2000-2002, 5th cong dist for VA
+
+join two sets?
+
+

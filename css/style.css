@@ -3,38 +3,77 @@
 /*created 1.19.2015*/
 
 body {
-	font-family: helvetica, arial, sans-serif;
+	/*font-family: helvetica, arial, sans-serif;*/
+}
+
+/*Headline/Deck*/
+.headline {
+	/*background: brown*/
+}
+
+.deck {
 
 }
 
-.well {
-	margin-top: 5%;
-	margin-left: -5%;
-	height: 75%;
+
+.bubbleDiv{
+	/*background: green;*/
+	left: -30;
 }
 
+.bubbleSvg {
+
+}
+
+.container {
+	/*background: orange*/
+}
 
 /*Infobox styles*/
 
-.title {
-
-}
-
-.congressPerson {
-font-style: bold;
-margin-top: -3%
+.bubbleWords{
+	height: 75;
+	font-size: 12;
 }
 
 .bubbleMessageOverall {
-	margin-top: -8%;
+
+}
+
+
+.bubbleLaw, 
+.bubbleScore, 
+.bubblePassed, 
+.congressPerson {
+	margin-top: 0;
+	margin-bottom: 0;
+	/*overflow: hidden;*/
+}
+
+.congressPerson {
+	font-style: bold;
+}
+
+
+/*slider details*/
+
+.sliderDiv{
+	float: right;
+	/*background-color: black*/
 }
 
 #slider {
-	margin-top: 6%;
+	position: absolute;
+	right: 0;
+	width: 13px;
+	height: 500px;
+	/*background: red;*/
 }
 
-.bubbleLaw, .bubbleScore, .bubblePassed {
-	margin-top: -3%
 
 
-}
+
+
+
+/*container div = 960 margin 0 auto to center*/
+

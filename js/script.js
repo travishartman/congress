@@ -1,157 +1,306 @@
 //script for congressional effectivness
 
 //variables
-
-var circlesPerRow = 15;
-
-var margin = { top: 40, right: 50, bottom: 20, left: 50 },
+var margin = { top: 40, right: 10, bottom: 80, left: 0 },
     width = 960 - margin.left - margin.right,
     height = 640 - margin.top - margin.bottom;
 
-
 var svg = d3.select('.bubbleDiv').append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-  	.append('g')
-    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+.attr('class', 'bubbleSvg')
+.attr('width', width + margin.left + margin.right)
+.attr('height', height + margin.top + margin.bottom)
+	.append('g')
+.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
+
+
+var INITIAL_VALUE = 93;
+
+
+SEATS_PER_ROW = [
+	50,
+	54,
+	56,
+	56,
+	57,
+	57,
+	57,
+	58
+];
+
+RADIUS_PER_ROW = [
+	230,
+	260,
+	290,
+	320,
+	350,
+	380,
+	410,
+	440
+];
+
+
+var MAX_SESSIONS = 20;
+
+var circlesPerRow = 12;
+
+ARC_CENTER = [width / 2, height - margin.bottom]
+
+
+
+// data parse a la Spool
+// sets a row and seat number for each rep per session.
+
+
+var sessions = []
+
+for (var i = 0; i < MAX_SESSIONS; i++) {
+	sessions[i] = SEATS_PER_ROW.slice();
+	sessions[i].currentRow = 0;
+}
+
+// this function runs on import of data below
+function addSeatRowAndNum(d) {
+
+	var mySessionSeats = sessions[parseInt(d.congress, 10) - 93];
+
+	if (mySessionSeats.currentRow >= mySessionSeats.length) {
+		console.error('Too many congressman for # seats')
+		// removing This congressman from the mix;
+		return null;
+	}
+
+	d.seatRow = mySessionSeats.currentRow;
+	d.seatNum = mySessionSeats[mySessionSeats.currentRow]--;
+
+	if ( ! mySessionSeats[mySessionSeats.currentRow] ) {
+		mySessionSeats.currentRow++;
+	}
+
+	return d;
+}
 
 
 // var congress;	
 var nestedCongress;
 
+//begin data acquisition and  overall callback
 
-d3.csv("data/93to110congress_namesplit.csv", function (congress){
+d3.csv("data/congress_sample.csv", addSeatRowAndNum,
+function (congress)
+{
 	nestedCongress = d3.nest()
-					.key (function(d) {return d.congress;}) //d.congress is the session of congress 
-					.map(congress)
-					// console.log(nestedCongress)
+		.key (function(d) 
+		{
+			return d.congress;
+		}) //d.congress is the session of congress 
+		.map(congress)
 
 
+	congressMagicNumberArray= [];
 
-	myData = nestedCongress[107];
+	for (var i in nestedCongress) 
+	{ 
+		congressMagicNumberArray.push(+i);
+	};
 
-testing = [];
-for (var i in nestedCongress) { testing.push(+i);};
-
-minScale = d3.min(testing);
-maxScale = d3.max(testing);
+	minScale = d3.min(congressMagicNumberArray);
+	maxScale = d3.max(congressMagicNumberArray);
 
 
+// d3.slider().value(50).orientation("vertical")
 
-d3.select('#slider')
-		.call(d3.slider()
-		.axis(true)
+	var slider = d3.slider()
+		.axis(d3.svg.axis()
+			.orient("left")
+			.ticks(10))
 		.min(minScale)
 		.max(maxScale)
 		.step(1)
-		);
-
-	var radiusScale = d3.scale.log()
-		.base([5])
-		.clamp(true)
-		.domain([.2, d3.max(myData, function(d){return d.les})])
-		.range([1, 20]);
-
-	var cy = d3.scale.linear()
-		.domain([0, myData.length / circlesPerRow])
-		.range([0, height])
-
-	var circles = svg.selectAll("circle")
-		.data(myData)
-		.enter()
-		.append("circle")
-		.attr('r', function (d) {
-			return d.les*0;
+		.on('slide', function(evt, value) 
+		{
+			console.log(value)
+			drive(value)/* update */ 
 		})
-		.attr('fill', function (d) {
-			if (d.dem == 1) return "blue"
-				else return "red"
-		} )
-		.attr('fill-opacity', .2 )
+		.orientation("vertical")
 
-		circles.transition()
-			.duration(4000)
-			.attr ("cx", function (d,i) {
-			return ((i % circlesPerRow)  * 50) + 125;
+		d3.select('#slider')
+		.call(slider);
+
+	drive(INITIAL_VALUE);
+
+	function drive(value){
+
+
+		myData = nestedCongress[value];
+		var pixelsBetweenCircles = 30;
+		var pixelsFromLeft = (width)/5;
+
+
+		// begin circle draw
+
+		var radiusScale = d3.scale.log()
+			.base([5])
+			.clamp(true)
+			.domain([.2, d3.max(myData, function(d)
+			{
+				return d.les
+			})])
+			.range([1, 20]);
+
+		var xScaleOfI = function (d,i) 
+		{
+			// return cx(i)
+			return ((i % circlesPerRow)  * pixelsBetweenCircles) + pixelsFromLeft;
+		}
+
+		var yScaleOfI = function (d,i) 
+		{
+			return ((i % circlesPerRow)  * pixelsBetweenCircles) + pixelsFromLeft;
+		}
+
+		// var cx = d3.scale.linear()
+
+
+		var cy = d3.scale.linear()
+			.domain([0, myData.length / circlesPerRow])
+			.range([0, height])
+
+		var circlesUpdate = svg.selectAll("circle")
+			.data(myData, function(d)
+			{
+				return d.thomas_name
+			})  
+			//how to manage what is old and new data via the key);
+
+//append the data determined circle shapes to the svg
+		var circlesEnter = circlesUpdate
+			.enter()
+			.append("circle")			
+
+//how the circels enter the world (where they transition FROM)
+		circlesEnter
+			.attr('r', function (d) 
+			{
+				return d.les*0;
 			})
-			.attr ("cy", function (d, i) { 
-				// console.log(i/circlesPerRow)
-				return cy (circlesPerRow )
-
-			})
-			.attr('r', function (d) {
-				return d.les*10;
-			})
-			.attr('fill', function (d) {
-				if (d.dem == 1) return "blue"
-					else return "red"
-			} )
-			.attr('fill-opacity', .2 )
 
 
 
-		
-		circles.on("click", function(d) {
-			circles.transition()
+
+
+//how they exist in the world (whhat they transition INTO)
+		circlesUpdate
+			.transition()
 			.duration(2000)
-
-			//reapeat.  ripe for function?
-			.attr ("cx", function (d,i) {
-				return ((i % circlesPerRow)  * 40) + 15;
+			.attr('fill', function (d) 
+			{
+				if (d.dem == 1) return "blue"
+				else return "red"
 			})
-			.attr ("cy", function (d, i) { 
-				return cy (Math.floor(i / circlesPerRow ))
+			.attr('fill-opacity', .3 )
+			//xScaleofi is horizontal distribution
+			// // .attr ("cx", xScaleOfI)
+			// .attr ("cx", width/2)
+			// // .attr ("cy", height/2)
+			// .attr ("cy", yScaleOfI)
+			.attr('cx', function(d, i)
+				{ 
+					return ARC_CENTER[0] - d3.radial.xPosOnArc(d.seatRow, d.seatNum, RADIUS_PER_ROW[d.seatRow])
+				})
+			.attr('cy', function(d, i)
+				{ 
+					return ARC_CENTER[1] - d3.radial.yPosOnArc(d.seatRow, d.seatNum, RADIUS_PER_ROW[d.seatRow])
+				})
 
-			})
-			// .attr('r', function (d, i) {
-			// 	return radiusScale (d.les)
+			// .attr ("cy", function (d, i) 
+			// { 
+			// 	return cy (circlesPerRow)/1.75
 			// })
-			.attr('fill-opacity', .5 )
+			.attr('r', function (d) 
+			{
+				return radiusScale(d.les);
+
+			})
+			.attr('z-index', function (d)
+			{
+				return (d.les*7)*-1
+			})
+			
+
+//how they leave the world
+		circlesUpdate
+			.exit()
+			.transition()
+			.attr ("cx", 100)
+			.attr('r', 0)
+			.remove()
+			.attr('fill-opacity', .0001)
+			.duration(1000)
+	// end draw circle
+
+		// transition into circle grid
+		circlesUpdate.on("click", function(d) 
+		{
+			circlesUpdate
+				.transition()
+				.duration(2000)
+				.attr ("cy", yScaleOfI)
+				.attr ("cx", function (d, i) 
+				{ 
+					return cy (Math.floor(i / circlesPerRow ))
+				})
+				// .attr ("stroke", "black")
+				.attr('fill-opacity', .4 )
+				.attr('r', function (d) 
+				{
+					return radiusScale(d.les)*1.2;
+				})
+
 		})
 
-		// previous radius size
-		// .attr('r', function (d) {
-		// 	return d.les*5;
-		// })
 
-		// .attr('fill', function (d) {
-		// 	if (d.dem == 1) return "blue"
-		// 		else return "red"
-		// } )
-		// .attr ("stroke", "black")
-	
+		circlesEnter.on("mouseover", function(d)
+		{
+			function bubbleName() 
+			{
+				return "<h4 class = 'congressPerson'>" + d.first_name + " " + d.last_name 
+			};
 
+			function bubbleParty()
+			{
+				if (d.dem == 1) {return "(D), " + d.st_name + "</h4>" ;} 
+				else {return "(R), " + d.st_name + "</h4>" ;}
+			};
 
-	circles.on("mouseover", function(d){
+			function bubblePassed()
+			{
+				return "<p class = 'bubblePassed'>Bills passed through house: " + d.all_pass 
+			}
 
-		function bubbleName() {
-			return "<p class = 'congressPerson'>" + d.first_name + " " + d.last_name 
-		};
+			function bubbleLaw() 
+			{
+				return "<p class = 'bubbleLaw'>Laws passed: " + d.all_law
+			}
 
-		function bubbleParty(){
-			if (d.dem == 1) {return "(D), " + d.st_name ;} 
-				else {return "(R), " + d.st_name ;}
-		};
+			function bubbleScore()
+			{	
+				return "<p class = 'bubbleScore'> LES score: " + Math.round(d.les*100)
+			};
+			// var congressTitle = "<h3> Congressperson: </h3>"
 
-		function bubbleScore(){	
-			return "<p class = 'bubbleScore'> LES score: " + d.les*100 
-		};
-		function bubblePassed(){
-			return "<pclass = 'bubblePassed'>Bills passed through house: " + d.all_pass 
-		}
-		function bubbleLaw() {
-			return "<p class = 'bubbleLaw'>Laws passed: " + d.all_law
-		}
-		var congressTitle = "<h3> Congressperson: </h3>"
+			var message =  "<p class = 'bubbleMessageOverall'>" +  bubbleName() + " " + bubbleParty() + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleScore() +"</p>"
 
-		var message =  "<p class = 'bubbleMessageOverall'>" + congressTitle +  bubbleName() + " " + bubbleParty() + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleScore() +"</p>"
+			$(".bubbleWords").html(message) // mouseover needs to be inside the callback of the mouseover function- otherwise it will not have run by the time message gets called.  reed suggested writing a function to contain the placing of the text into the div, and then placing that funciton inside of the callback.  
 
-		$(".bubbleWords").html(message) // mouseover needs to be inside the callback of the mouseover function- otherwise it will not have run by the time message gets called.  reed suggested writing a function to contain the placing of the text into the div, and then placing that funciton inside of the callback.  
-	});  //end mouseover
+		});  //end mouseover
 
+	// end circle grid tanstioin
 
+	}; //end drive
 
 });  // close data callback
+
+
 
 
 
@@ -180,4 +329,10 @@ d3.select('#slider')
 
 
 
+// on enter append the thing.
+// thne, 
+// on update, do allt heihngs that would happen when it changes.
 
+// d3 has denter and set of dom nodes.
+// when data comes in .datawith 
+// on enter means when it's not yet made into a dom node. 
