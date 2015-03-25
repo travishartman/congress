@@ -31,7 +31,7 @@ return function module() {
       step = 0.01,
       animate = true,
       orientation = "horizontal",
-      axis = false,
+      axis = true,
       margin = 50,
       value,
       active = 1,
@@ -42,7 +42,7 @@ return function module() {
   var axisScale,
       dispatch = d3.dispatch("slide", "slideend"),
       formatPercent = d3.format(".2%"),
-      tickFormat = d3.format(".0"),
+      tickFormat = d3.time.format("%Y"),
       handle1,
       handle2 = null,
       sliderLength;

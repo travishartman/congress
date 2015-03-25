@@ -12,19 +12,19 @@ var svg = d3.select('.bubbleDiv').append('svg')
 	.append('g')
 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
 
-
-var INITIAL_VALUE = 93;
+//initial value for slider
+var INITIAL_VALUE = 1977;
 
 
 SEATS_PER_ROW = [
-	50,
-	54,
+	51,
+	55,
 	56,
-	56,
 	57,
 	57,
-	57,
-	58
+	58,
+	58,
+	60
 ];
 
 RADIUS_PER_ROW = [
@@ -48,7 +48,8 @@ ARC_CENTER = [width / 2, height - margin.bottom]
 
 
 // data parse a la Spool
-// sets a row and seat number for each rep per session.
+// sets a row and seat number for each represenative per session for entire dataset.
+//sets up the matrix for the function addSeatRowandNum to do what it's name says.
 
 
 var sessions = []
@@ -56,10 +57,21 @@ var sessions = []
 for (var i = 0; i < MAX_SESSIONS; i++) {
 	sessions[i] = SEATS_PER_ROW.slice();
 	sessions[i].currentRow = 0;
+		
+
 }
 
-// this function runs on import of data below
+// for (var i = 0; i < 20; i++) {
+// 	sessions[i] = SEATS_PER_ROW.slice();
+// 	sessions[i].currentRow = 0;
+// 	console.log(i)
+// }
+
+// this function runs directly after import of data below
 function addSeatRowAndNum(d) {
+
+//set MySessionSeats equal to sessions(built in above function) sessions[d.congress from data which is the session number of congress x(set to zero, thus the -93)]
+	var parseDate = d3.time.format("%Y").parse;
 
 	var mySessionSeats = sessions[parseInt(d.congress, 10) - 93];
 
@@ -71,6 +83,10 @@ function addSeatRowAndNum(d) {
 
 	d.seatRow = mySessionSeats.currentRow;
 	d.seatNum = mySessionSeats[mySessionSeats.currentRow]--;
+	// d.year   = parseDate(d.year.toString());
+	// console.log(typeof (d.year))
+
+	// console.log(mySessionSeats.currentRow, mySessionSeats[mySessionSeats.currentRow])
 
 	if ( ! mySessionSeats[mySessionSeats.currentRow] ) {
 		mySessionSeats.currentRow++;
@@ -82,6 +98,7 @@ function addSeatRowAndNum(d) {
 
 // var congress;	
 var nestedCongress;
+var yearOfCongress;
 
 //begin data acquisition and  overall callback
 
@@ -95,14 +112,25 @@ function (congress)
 		}) //d.congress is the session of congress 
 		.map(congress)
 
+	yearOfCongress = d3.nest()
+		.key (function(d) 
+		{
+			return d.year;
+			// var total = parseFloat('100,000.00'.replace(/,/g, ''))
+		}) //d.year is the year of congress 
+
+		.map(congress)
+
+
 
 	congressMagicNumberArray= [];
 
-	for (var i in nestedCongress) 
+	for (var i in yearOfCongress) 
 	{ 
 		congressMagicNumberArray.push(+i);
 	};
-
+	// console.log(congressMagicNumberArray
+		// )
 	minScale = d3.min(congressMagicNumberArray);
 	maxScale = d3.max(congressMagicNumberArray);
 
@@ -111,17 +139,20 @@ function (congress)
 
 	var slider = d3.slider()
 		.axis(d3.svg.axis()
-			.orient("left")
-			.ticks(10))
+			.orient("right")
+			.ticks(20)
+			// .tickFormat(d3.time.format("%Y"))
+			)
 		.min(minScale)
 		.max(maxScale)
-		.step(1)
+		.step(2)
 		.on('slide', function(evt, value) 
 		{
-			console.log(value)
+			// console.log(value)
 			drive(value)/* update */ 
 		})
 		.orientation("vertical")
+
 
 		d3.select('#slider')
 		.call(slider);
@@ -131,7 +162,8 @@ function (congress)
 	function drive(value){
 
 
-		myData = nestedCongress[value];
+		myData = yearOfCongress[value];
+
 		var pixelsBetweenCircles = 30;
 		var pixelsFromLeft = (width)/5;
 
@@ -149,7 +181,7 @@ function (congress)
 
 		var xScaleOfI = function (d,i) 
 		{
-			// return cx(i)
+
 			return ((i % circlesPerRow)  * pixelsBetweenCircles) + pixelsFromLeft;
 		}
 
@@ -158,7 +190,7 @@ function (congress)
 			return ((i % circlesPerRow)  * pixelsBetweenCircles) + pixelsFromLeft;
 		}
 
-		// var cx = d3.scale.linear()
+
 
 
 		var cy = d3.scale.linear()
