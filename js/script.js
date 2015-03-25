@@ -61,12 +61,6 @@ for (var i = 0; i < MAX_SESSIONS; i++) {
 
 }
 
-// for (var i = 0; i < 20; i++) {
-// 	sessions[i] = SEATS_PER_ROW.slice();
-// 	sessions[i].currentRow = 0;
-// 	console.log(i)
-// }
-
 // this function runs directly after import of data below
 function addSeatRowAndNum(d) {
 
@@ -120,6 +114,7 @@ function (congress)
 		}) //d.year is the year of congress 
 
 		.map(congress)
+		// console.log(yearOfCongress)
 
 
 
@@ -133,7 +128,7 @@ function (congress)
 		// )
 	minScale = d3.min(congressMagicNumberArray);
 	maxScale = d3.max(congressMagicNumberArray);
-
+// console.log(congressMagicNumberArray)
 
 // d3.slider().value(50).orientation("vertical")
 
@@ -141,7 +136,8 @@ function (congress)
 		.axis(d3.svg.axis()
 			.orient("right")
 			.ticks(20)
-			// .tickFormat(d3.time.format("%Y"))
+			.tickFormat(d3.format())
+			.tickValues(congressMagicNumberArray)
 			)
 		.min(minScale)
 		.max(maxScale)
