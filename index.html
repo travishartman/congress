@@ -7,8 +7,12 @@
     <link rel="stylesheet" href="css/d3.slider.css"/>
     <link rel="stylesheet" href="css/style.css"/>
     <link href="mapglyphs/mapglyphs.css" rel="stylesheet">
+
 </head>
 <body>
+
+
+
 	<div class = "container">
 		<div class = "explainerText">
 
@@ -22,6 +26,12 @@
 
 			<div class = "col-md-9 deck">
 				<p> A new way to rate your congressman: the Legislative Effectiveness Score.  Political scientists have compiled data around the quantity and quality of bills fostered by congressmen, then reduce the data into a score.  Congressmen participate in many activites outside of legislation, but this is one measurable metric. </p>
+
+				<div class="btn-group" role="group" helvetica-label="Sort By">
+					 <button type="button" class="btn btn-sm btn-default view-sort" val="les">LES</button>
+					 <button type="button" class="btn btn-sm btn-default view-sort" val="party">Party</button>
+					 <button type="button" class="btn btn-sm btn-default view-sort" val="tenure">Tenure</button>
+				</div>
 			</div> <!-- close deck div -->
 
 		</div> <!-- close explainerText -->
@@ -41,6 +51,14 @@
 
 
 	</div> <!-- close container -->
+		<div id = "tooltip" class="hidden">
+		<p></p>
+		<p><span id = "value">100</span></p>
+	</div>
+	<div id = "singleInfo" class="hidden">
+		<p></p>
+		<p><span id = "singleValue">100</span></p>
+	</div>
 
 </body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -51,6 +69,7 @@
     <!-- Latest compiled and minified Bootstrap JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
   <!--   <script src="js/script.js"></script> -->
-    <script src="js/script.js"></script>
+  <script src="js/script.js"></script>
+
 
 </html>
