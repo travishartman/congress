@@ -336,8 +336,8 @@ function visualizeYear(year){
 			else return "black"
 		})
 		.transition()
-		.duration(2000)
-		.delay(function(d, i) { return i * 10; })
+		.duration(1500)
+		.delay(function(d, i) { return i * 5; })
 
 		// .attr('fill', function (d) {
 		// 	if (d.dem == 1) return "blue"
