@@ -13,8 +13,8 @@ var svg = d3.select('.bubbleDiv').append('svg')
 	.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); 
 
 //initial value for slider
+var CURRENTYEAR;
 var INITIAL_YEAR = 1973;
-
 var nestedCongress;
 var allCongressYears;
 
@@ -55,7 +55,6 @@ RADIUS_PER_ROW = [
 
 var MAX_SESSIONS = 20;
 var MAX_ROWS = 8;
-
 var circlesPerRow = 12;
 
 ARC_CENTER = [width / 2, height - margin.bottom]
@@ -66,7 +65,6 @@ ARC_CENTER = [width / 2, height - margin.bottom]
 // sets a row and seat number for each represenative per session for entire dataset.
 //sets up the matrix for the function addSeatRowandNum to do what it's name says.
 
-
 var sessions = []
  // console.log(sessions)
 for (var i = 0; i < MAX_SESSIONS; i++) {
@@ -75,15 +73,13 @@ for (var i = 0; i < MAX_SESSIONS; i++) {
 	sessions[i].currentRow = 0;	
 }
 
- // console.log(sessions)
 
 function addSeatRowAndNum(d) {
 
- // console.log("seatsrows")
 	var mySessionSeats = sessions[parseInt(d.congress, 10) - 93];
-	 // console.log(mySessionSeats)
+
 	var totalRows =  mySessionSeats.length - 1;
-	 // console.log(totalRows)
+
 	// if (mySessionSeats.currentRow >= mySessionSeats.length) {
 	// 	console.error('Too many congressman for # seats')
 	// 	return null;
@@ -113,27 +109,20 @@ function addSeatRowAndNum(d) {
 
 function sessions2 (MAX_SESSIONS, SEATS_TRAVIS) {
 	var sessionsRedux = []
- 	console.log(sessions)
+
 	for (var i = 0; i < MAX_SESSIONS; i++) {
-	sessions[i] = SEATS_TRAVIS[i+93].slice()
-	console.log(MAX_SESSIONS)
-	sessions[i].currentRow = 0;	
+		sessions[i] = SEATS_TRAVIS[i+93].slice()
+		console.log(MAX_SESSIONS)
+		sessions[i].currentRow = 0;	
 	};
-	// console.log(sessions)
+
 	return sessionsRedux
 };
 
 function addSeatRowAndNum2(d) {
 
- 	// console.log("seatsrows")
 	var mySessionSeats = sessions[parseInt(d.congress, 10) - 93];
-	 // console.log(mySessionSeats)
 	var totalRows =  mySessionSeats.length - 1;
-	 // console.log(totalRows)
-	// if (mySessionSeats.currentRow >= mySessionSeats.length) {
-	// 	console.error('Too many congressman for # seats')
-	// 	return null;
-	// }
 
 	if (mySessionSeats.currentRow > totalRows) {
 		mySessionSeats.currentRow = 0;
@@ -143,16 +132,8 @@ function addSeatRowAndNum2(d) {
 		mySessionSeats.currentRow++;
 	}
 
-	// if (mySessionSeats.currentRow > totalRows) {
-	// 	console.log("There are no seats left")
-	// }
-
 	d.seatNum = mySessionSeats[mySessionSeats.currentRow]--;
 	d.seatRow = mySessionSeats.currentRow++;
-	// d.year   = parseDate(d.year.toString());
-
-	// if ( ! mySessionSeats[mySessionSeats.currentRow] ) {
-	// 	mySessionSeats.currentRow++;
 
 	return d;
 }
@@ -163,10 +144,12 @@ function addSeatRowAndNum2(d) {
 
 
 d3.csv("data/congress_sample.csv", function (congress) {
+	
+	congress.sort(function(x, y) {
+		return d3.descending(+x.dem, +y.dem);
+	})
 
-	// currSort = "les";
 	setNav(congress);
-
 
 	function setNav (d) {
 	    $(".btn.view-sort").on("click", function() {
@@ -183,7 +166,7 @@ d3.csv("data/congress_sample.csv", function (congress) {
 			// return update[currSort](congress)
 		});
 
-		congress = congress.map(addSeatRowAndNum);
+		congress = congress.map(addSeatRowAndNum2);
 
 	};
 
@@ -197,6 +180,7 @@ d3.csv("data/congress_sample.csv", function (congress) {
 	// ######################### slider code ##########################
 
 	//grab numbers from year nest for yearly tick values
+
 	congressMagicNumberArray = [];
 
 	for (var i in allCongressYears) { 
@@ -206,7 +190,8 @@ d3.csv("data/congress_sample.csv", function (congress) {
 	minScale = d3.min(congressMagicNumberArray);
 	maxScale = d3.max(congressMagicNumberArray);
 
-	var slider = d3.slider()
+	var slider = 
+		d3.slider()
 		.axis(d3.svg.axis()
 			.orient("right")
 			.ticks(20)
@@ -216,9 +201,12 @@ d3.csv("data/congress_sample.csv", function (congress) {
 		.min(minScale)
 		.max(maxScale)
 		.step(2)
-		.on('slide', function(evt, value) {
+		.on('slide', _.throttle(function (evt, value) {
 			visualizeYear(value)/* update */ 
-		})
+
+			CURRENTYEAR = value;
+
+		}, 1000))
 		.orientation("vertical")
 
 	d3.select('#slider')
@@ -231,70 +219,75 @@ d3.csv("data/congress_sample.csv", function (congress) {
 update = {
 
 	les: function (congress) {
+
+		congress.sort(function(x, y) {
+   			return d3.descending(+x.les, +y.les);
+		})
+
+		sessions2(MAX_SESSIONS, SEATS_TRAVIS);
+		congress = congress.map(addSeatRowAndNum2);
+
+		allCongressYears = d3.nest()
+		.key (function(d) {
+			return d.year;
+		}) 
+		.map(congress)
 		
+		d3.slider()
+			.on('slide', function(evt, value) {
+			visualizeYear(value)/* update */ 
+			console.log(value)
+		})
 
-		// d3.csv("data/congress_sample.csv", function (congress) {
+		if (CURRENTYEAR == undefined) {
+			visualizeYear(INITIAL_YEAR)
+		} else {
+		visualizeYear(CURRENTYEAR);}
 
-			congress.sort(function(x, y) {
-	   			return d3.descending(+x.les, +y.les);
-			})
-
-			sessions2(MAX_SESSIONS, SEATS_TRAVIS);
-			congress = congress.map(addSeatRowAndNum2);
-
-			allCongressYears = d3.nest()
-			.key (function(d) {
-				return d.year;
-			}) 
-			.map(congress)
-
-			visualizeYear(INITIAL_YEAR);
-
-		// }); 
+ 
 	},
 
 	party: function (congress) {
 
-		// d3.csv("data/congress_sample.csv", function (congress) {
+		congress.sort(function(x, y) {
+   			return d3.descending(+x.dem, +y.dem);
+		})
 
-			congress.sort(function(x, y) {
-	   			return d3.descending(+x.dem, +y.dem);
-			})
+		sessions2(MAX_SESSIONS, SEATS_TRAVIS);
 
-			sessions2(MAX_SESSIONS, SEATS_TRAVIS);
+		congress = congress.map(addSeatRowAndNum2);
+		// console.log(congress)
 
-			congress = congress.map(addSeatRowAndNum2);
-			// console.log(congress)
+		allCongressYears = d3.nest()
+		.key (function(d) {
+			return d.year;
+		}) 
+		.map(congress)
 
-			allCongressYears = d3.nest()
-			.key (function(d) {
-				return d.year;
-			}) 
-			.map(congress)
+		if (CURRENTYEAR == undefined) {
+			visualizeYear(INITIAL_YEAR)
+		} else {
+		visualizeYear(CURRENTYEAR);}
 
-			// console.log(allCongressYears)
-
-			visualizeYear(INITIAL_YEAR);
-		// });
 },
 	tenure: function (congress) {
 		congress.sort(function(x, y) {
-   		return d3.descending(+x.seniority, +y.seniority);
+   			return d3.descending(+x.seniority, +y.seniority);
 		})
-			sessions2(MAX_SESSIONS, SEATS_TRAVIS);
+		sessions2(MAX_SESSIONS, SEATS_TRAVIS);
 
-			congress = congress.map(addSeatRowAndNum2);
-			// console.log(congress)
+		congress = congress.map(addSeatRowAndNum2);
 
-			allCongressYears = d3.nest()
-			.key (function(d) {
-				return d.year;
-			}) 
-			.map(congress)
+		allCongressYears = d3.nest()
+		.key (function(d) {
+			return d.year;
+		}) 
+		.map(congress)
 
-			// console.log(allCongressYears)
-
-			visualizeYear(INITIAL_YEAR);
+		if (CURRENTYEAR == undefined) {
+			visualizeYear(INITIAL_YEAR)
+		} else {
+		visualizeYear(CURRENTYEAR);}
 	},
 
 }
@@ -337,13 +330,20 @@ function visualizeYear(year){
 
 	//how they exist in the world (whhat they transition INTO)
 	circlesUpdate
-		.transition()
-		.duration(2000)
-		.attr('fill', function (d) {
+	.attr('fill', function (d) {
 			if (d.dem == 1) return "blue"
 			else if (d.dem == 0) return "red"
 			else return "black"
 		})
+		.transition()
+		.duration(2000)
+		.delay(function(d, i) { return i * 10; })
+
+		// .attr('fill', function (d) {
+		// 	if (d.dem == 1) return "blue"
+		// 	else if (d.dem == 0) return "red"
+		// 	else return "black"
+		// })
 		.attr('fill-opacity', .3 )
 		.attr('cx', function(d, i) { 
 			return ARC_CENTER[0] - 
@@ -363,11 +363,11 @@ function visualizeYear(year){
 	circlesUpdate
 		.exit()
 		.transition()
-		.attr ("cx", 100)
+		// .attr ("cx", 100)
 		.attr('r', 0)
+		.attr('fill-opacity', .01)
 		.remove()
-		.attr('fill-opacity', .0001)
-		.duration(1000)
+		.duration(500)
 
 	// isolate single circle, bring to middle, and fade all others
 	circlesUpdate
