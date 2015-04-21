@@ -16,7 +16,7 @@ body {
 }
 
 
-.bubbleDiv{
+.bubbleDiv {
 	/*background: green;*/
 	left: -30;
 }
@@ -98,7 +98,7 @@ pointer-events: none;
 	line-height: 20px;
 }
 
-#singleInfo {
+#singleInfoDiv {
 position: absolute;
 width: 245px;
 height: auto;
@@ -111,11 +111,11 @@ border-radius: 10px; /* future proofing */
 pointer-events: none;
 }
 
-#singleInfo.hidden {
+#singleInfoDiv.hidden {
 	display: none;
 }
 
-#singleInfo p{
+#singleInfoDiv p{
 	margin: 0;
 	font-family: sans-serif;
 	font-size: 16px;

@@ -17,6 +17,8 @@ var CURRENTYEAR;
 var INITIAL_YEAR = 1973;
 var nestedCongress;
 var allCongressYears;
+var CONGRESS = [];
+
 
 
 var SEATS_TRAVIS = { 
@@ -69,7 +71,7 @@ var sessions = []
  // console.log(sessions)
 for (var i = 0; i < MAX_SESSIONS; i++) {
 	sessions[i] = SEATS_TRAVIS[i+93].slice()
-	console.log(sessions[i])
+	// console.log(sessions[i])
 	sessions[i].currentRow = 0;	
 }
 
@@ -112,7 +114,7 @@ function sessions2 (MAX_SESSIONS, SEATS_TRAVIS) {
 
 	for (var i = 0; i < MAX_SESSIONS; i++) {
 		sessions[i] = SEATS_TRAVIS[i+93].slice()
-		console.log(MAX_SESSIONS)
+		// console.log(MAX_SESSIONS)
 		sessions[i].currentRow = 0;	
 	};
 
@@ -157,13 +159,13 @@ d3.csv("data/congress_sample.csv", function (congress) {
 		    $(".btn.view-sort").removeClass("active");
 		    $(this).addClass("active");
 		    if (currSort == "les") {
-		    	update[currSort](congress);
+		    	buttonUpdate[currSort](congress);
 		    } else if (currSort == "tenure") {
-		    	update[currSort](congress);
+		    	buttonUpdate[currSort](congress);
 			} else if (currSort == "party") {
-		    	update[currSort](congress);
+		    	buttonUpdate[currSort](congress);
 			}
-			// return update[currSort](congress)
+
 		});
 
 		congress = congress.map(addSeatRowAndNum2);
@@ -175,6 +177,66 @@ d3.csv("data/congress_sample.csv", function (congress) {
 			return d.year;
 		}) 
 		.map(congress)
+
+	var myArr = [];
+
+	parseCongress(congress);
+
+	function parseCongress(d) {
+	   	for (var x in d) { 
+	   		var congressArray = d[x];
+		     myArr.push({"text" : congressArray.thomas_name + " " + congressArray.year, "value" : "thomas-num-" + congressArray.thomas_num});
+
+		 	};
+		}
+
+
+
+
+function test(d) {
+console.log(this.value())
+	            // 	var thomasNumber = "thomas-num-" + congressArray.thomas_num;
+            	// // .filter here
+            	// console.log(thomasNumber)
+}
+
+
+
+    // create ComboBox from input HTML element
+    $("#congressSearch").kendoComboBox({
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: myArr,
+        filter: "contains",
+        suggest: true,
+        // index: 3
+            change: function (d) {
+            	var thomasNumber = this.value();
+
+            	console.log(congress)
+            	//apply thomas number to existing class and change to green when selected.  
+            	d3.select("." + thomasNumber)
+            		.attr("fill", "green")
+
+
+            	// console.log(this.value())
+            	// console.log(congress)
+
+            	// if (this.value == d3.select congress.thomas_num) {
+            	// 	visualizeYear(+congress.year)
+            	// 	console.log("test")
+
+            		// clickFunction(d, )
+            	// }
+
+
+            	// if (this.text() == d.thomas_name + " " + d.year) {
+
+            	// }
+           // alert("value " + this.value() + "   " + "text " + this.text()); 
+           // console.log(typeof(this.value()))                     
+        }
+    });
 
 
 	// ######################### slider code ##########################
@@ -214,9 +276,11 @@ d3.csv("data/congress_sample.csv", function (congress) {
 
 	visualizeYear(INITIAL_YEAR);
 
+
+
 });  // close data callback
 
-update = {
+buttonUpdate = {
 
 	les: function (congress) {
 
@@ -236,7 +300,7 @@ update = {
 		d3.slider()
 			.on('slide', function(evt, value) {
 			visualizeYear(value)/* update */ 
-			console.log(value)
+			// console.log(value)
 		})
 
 		if (CURRENTYEAR == undefined) {
@@ -269,7 +333,7 @@ update = {
 		} else {
 		visualizeYear(CURRENTYEAR);}
 
-},
+	},
 	tenure: function (congress) {
 		congress.sort(function(x, y) {
    			return d3.descending(+x.seniority, +y.seniority);
@@ -294,6 +358,7 @@ update = {
 
 function visualizeYear(year){
 
+
 	yearOfCongress = allCongressYears[year];
 
 	// begin circle draw
@@ -301,8 +366,7 @@ function visualizeYear(year){
 	var radiusScale = d3.scale.log()
 		.base([5])
 		.clamp(true)
-		.domain([.2, d3.max(yearOfCongress, function(d)
-		{
+		.domain([.2, d3.max(yearOfCongress, function(d) {
 			return d.les
 		})])
 		.range([2, 21]);
@@ -326,11 +390,13 @@ function visualizeYear(year){
 	circlesEnter
 		.attr('r', function (d) {
 			return d.les*0;
+
 		})
+		// .attr('cx', 1000)
 
 	//how they exist in the world (whhat they transition INTO)
 	circlesUpdate
-	.attr('fill', function (d) {
+		.attr('fill', function (d) {
 			if (d.dem == 1) return "blue"
 			else if (d.dem == 0) return "red"
 			else return "black"
@@ -357,7 +423,10 @@ function visualizeYear(year){
 		.attr('r', function (d) {
 				return radiusScale(d.les)
 		})
-		.attr("class","circle");
+		// .attr("class","circle")
+		.attr("class", function (d) {return "circle " + "thomas-num-" + d.thomas_num})
+		.attr('id', 'circle');
+
 
 	//how circles leave the world
 	circlesUpdate
@@ -370,82 +439,105 @@ function visualizeYear(year){
 		.duration(500)
 
 	// isolate single circle, bring to middle, and fade all others
-	circlesUpdate
-	.on("click", function (d) {
-		d3.event.stopPropagation();
-		d3.select(this)
-		.classed("isolate", true)
-		.transition()
-		.duration(1000)
-			.attr('fill-opacity', .5 )
-			.attr ("cy",  function (d) {
-				return (height / 2)  - (d.les * 10)} )
-			.attr ("cx", width / 2)
-			.attr('r', function (d) {
-				return d.les*10
-			});
 
-		d3.select(this)
-		.classed("circle", false);
 
-		d3.selectAll(".circle")
+
+
+//change click function to use thomas-num class, and
+// .filter to find the d object 
+// classed 
+
+
+
+	// circlesUpdate
+	svg.selectAll("circle")
+		.data(yearOfCongress, function (d) {
+			return d.thomas_name
+		}) 
+		.on("click", function (d) {
+			var thomasNumber = d.thomas_num;
+			// var thisForClicks = this;
+			// clickFunction(d,thisForClicks);
+			// console.log(this)
+
+			d3.event.stopPropagation();
+			d3.select(".thomas-num-" + thomasNumber)
+			.classed("isolate", true)
+			.classed("circle", false)
 			.transition()
 			.duration(1000)
-			.attr("class", "circle notActive")
-			.attr('fill-opacity', .05);
+				.attr('fill-opacity', .5 )
+				.attr ("cy",  function (d) {
+					return (height / 2)  - (d.les * 10)} )
+				.attr ("cx", width / 2)
+				.attr('r', function (d) {
+					return d.les*10
+				});
+
+			// d3.select(".thomas-num-" + test)
+			// .classed("circle", false);
 
 
-		d3.select('#singleInfo')
-			.style('left', 500 + "px")
-			.style('top', 500 + "px") 
-			.select('#singleValue')
-			.html("<p class = 'bubbleMessageOverall'>" +  d.thomas_name + " " + bubbleParty() + "<br>" + d.year + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleTenure() +  "<br>" + bubbleScore() +"</p>")
-		d3.select('#singleInfo').classed("hidden", false);
-		
+			d3.selectAll(".circle")
+			.classed("notActive", true)
+				.transition()
+				.duration(1000)
+				
+				.attr('fill-opacity', .05);
 
-		// #################### Single Info Readout ##################
 
-		function bubbleName() {
-			return "<h4 class = 'congressPerson'>" + d.first_name + " " + d.last_name 
-		};
+			d3.select('#singleInfoDiv')
+				.style('left', 500 + "px")
+				.style('top', 500 + "px") 
+				.select('#singleValue')
+				.html("<p class = 'bubbleMessageOverall'>" +  d.thomas_name + " " + bubbleParty() + "<br>" + d.year + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleTenure() +  "<br>" + bubbleScore() +"</p>")
 
-		function bubbleParty() {
-				 if (d.dem == 1) {return "(D), " + d.st_name ;} 
-			else if (d.dem == 0) {return "(R), " + d.st_name ;}
-			else if (d.dem == 3) {return "(DPG), " + d.st_name ;}
-			else if (d.dem == 4) {return "(RPG), " + d.st_name ;}
-			else if (d.dem == 5) {return "(PDP), " + d.st_name ;}
-			else if (d.dem == 6) {return "(NPP), " + d.st_name ;}
-			else if (d.dem == 7) {return "(ICM), " + d.st_name ;}
-		};
+			d3.select('#singleInfoDiv').classed("hidden", false);
+			
 
-		function bubbleTenure() {
-			return "<p class = 'bubblePassed'>Years served: " + d.seniority 
-		}
+			// #################### Single Info Readout ##################
 
-		function bubblePassed() {
-			return "<p class = 'bubblePassed'>Bills passed through house: " + d.all_pass 
-		}
+			function bubbleName() {
+				return "<h4 class = 'congressPerson'>" + d.first_name + " " + d.last_name 
+			};
 
-		function bubbleLaw() {
-			return "<p class = 'bubbleLaw'>Laws passed: " + d.all_law
-		}
+			function bubbleParty() {
+					 if (d.dem == 1) {return "(D), " + d.st_name ;} 
+				else if (d.dem == 0) {return "(R), " + d.st_name ;}
+				else if (d.dem == 3) {return "(DPG), " + d.st_name ;}
+				else if (d.dem == 4) {return "(RPG), " + d.st_name ;}
+				else if (d.dem == 5) {return "(PDP), " + d.st_name ;}
+				else if (d.dem == 6) {return "(NPP), " + d.st_name ;}
+				else if (d.dem == 7) {return "(ICM), " + d.st_name ;}
+			};
 
-		function bubbleScore() {	
-			return "<p class = 'bubbleScore'> LES score: " + Math.round(d.les*100)
-		};
+			function bubbleTenure() {
+				return "<p class = 'bubblePassed'>Terms served: " + d.seniority 
+			}
 
-		var message =  "<p class = 'bubbleMessageOverall'>" +  bubbleName() + " " + bubbleParty() + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleScore() +"</p>"
+			function bubblePassed() {
+				return "<p class = 'bubblePassed'>Bills passed through house: " + d.all_pass 
+			}
 
-		$(".bubbleWords").html(message)
+			function bubbleLaw() {
+				return "<p class = 'bubbleLaw'>Laws passed: " + d.all_law
+			}
+
+			function bubbleScore() {	
+				return "<p class = 'bubbleScore'> LES score: " + Math.round(d.les*100)
+			};
+
+			var message =  "<p class = 'bubbleMessageOverall'>" +  bubbleName() + " " + bubbleParty() + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleScore() +"</p>"
+
+			$(".bubbleWords").html(message)
 	
 	}) 
 
 	//return to full array view
 	d3.select("svg")
-	.data(yearOfCongress)
-	.on("click", function(d) {
-		circlesUpdate
+		.data(yearOfCongress)
+		.on("click", function(d) {
+			circlesUpdate
 			.transition()
 			.duration(1000)
 			.attr('fill-opacity', .3 )
@@ -461,8 +553,9 @@ function visualizeYear(year){
 			.attr('r', function (d) {
 					return radiusScale(d.les)
 			})
-			.attr("class", "circle");
-		d3.select('#singleInfo').classed("hidden", true);
+			.attr("class", function (d) {return "circle " + "thomas-num-" + d.thomas_num})
+
+		d3.select('#singleInfoDiv').classed("hidden", true);
 	})
 
 
@@ -488,8 +581,8 @@ function visualizeYear(year){
 		};
 
 		function bubbleParty() {
-			if 		(d.dem == 1) {return "(D), " + d.st_name ;} 
-			else if (d.dem == 0) {return "(R), " + d.st_name ;}
+			if 		(d.dem == 1) {return "(D), "   + d.st_name ;} 
+			else if (d.dem == 0) {return "(R), "   + d.st_name ;}
 			else if (d.dem == 3) {return "(DPG), " + d.st_name ;}
 			else if (d.dem == 4) {return "(RPG), " + d.st_name ;}
 			else if (d.dem == 5) {return "(PDP), " + d.st_name ;}
@@ -523,9 +616,87 @@ function visualizeYear(year){
 	})
 
 
-}; //end visualizeYear
+} //end visualizeYear
+
+    // create ComboBox from select HTML element
+
+    var fabric = $("#congressSearch").data("kendoComboBox");
+	// var select = $("#size").data("kendoComboBox");
 
 
 
+	$("#get").click(function() {
+	    // alert('Thank you! Your Choice is:\n\nFabric ID: ' + fabric.value() + ' and Size: ' + select.value());
+    });
 
 
+// function clickFunction (d,thisForClicks){
+// 	// console.log(thisForClicks, console.log(d))
+// 		d3.event.stopPropagation();
+// 		d3.select(thisForClicks)
+// 		.classed("isolate", true)
+// 		.transition()
+// 		.duration(1000)
+// 			.attr('fill-opacity', .5 )
+// 			.attr ("cy",  function (d) {
+// 				return (height / 2)  - (d.les * 10)} )
+// 			.attr ("cx", width / 2)
+// 			.attr('r', function (d) {
+// 				return d.les*10
+// 			});
+
+// 		d3.select(thisForClicks)
+// 		.classed("circle", false);
+
+// 		d3.selectAll(".circle")
+// 			.transition()
+// 			.duration(1000)
+// 			.attr("class", "circle notActive")
+// 			.attr('fill-opacity', .05);
+
+
+// 		d3.select('#singleInfoDiv')
+// 			.style('left', 500 + "px")
+// 			.style('top', 500 + "px") 
+// 			.select('#singleValue')
+// 			.html("<p class = 'bubbleMessageOverall'>" +  d.thomas_name + " " + bubbleParty() + "<br>" + d.year + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleTenure() +  "<br>" + bubbleScore() +"</p>")
+
+// 		d3.select('#singleInfoDiv').classed("hidden", false);
+		
+
+// 		// #################### Single Info Readout ##################
+
+// 		function bubbleName() {
+// 			return "<h4 class = 'congressPerson'>" + d.first_name + " " + d.last_name 
+// 		};
+
+// 		function bubbleParty() {
+// 				 if (d.dem == 1) {return "(D), " + d.st_name ;} 
+// 			else if (d.dem == 0) {return "(R), " + d.st_name ;}
+// 			else if (d.dem == 3) {return "(DPG), " + d.st_name ;}
+// 			else if (d.dem == 4) {return "(RPG), " + d.st_name ;}
+// 			else if (d.dem == 5) {return "(PDP), " + d.st_name ;}
+// 			else if (d.dem == 6) {return "(NPP), " + d.st_name ;}
+// 			else if (d.dem == 7) {return "(ICM), " + d.st_name ;}
+// 		};
+
+// 		function bubbleTenure() {
+// 			return "<p class = 'bubblePassed'>Terms served: " + d.seniority 
+// 		}
+
+// 		function bubblePassed() {
+// 			return "<p class = 'bubblePassed'>Bills passed through house: " + d.all_pass 
+// 		}
+
+// 		function bubbleLaw() {
+// 			return "<p class = 'bubbleLaw'>Laws passed: " + d.all_law
+// 		}
+
+// 		function bubbleScore() {	
+// 			return "<p class = 'bubbleScore'> LES score: " + Math.round(d.les*100)
+// 		};
+
+// 		var message =  "<p class = 'bubbleMessageOverall'>" +  bubbleName() + " " + bubbleParty() + "<br>" + bubblePassed() + "<br>" +  bubbleLaw() +  "<br>" + bubbleScore() +"</p>"
+
+// 		$(".bubbleWords").html(message)
+// }
